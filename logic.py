@@ -1,6 +1,6 @@
 import aiohttp  # A library for asynchronous HTTP requests
 import random
-
+from datetime import datetime, timedelta
 class Pokemon:
     pokemons = {}
     # Object initialisation (constructor)
@@ -12,7 +12,7 @@ class Pokemon:
         self.nickname = nickname
         self.level = 0
         self.food = 200
-        self.moves = []
+        self.lastfeedtime = datetime.now()
         self.power = random.randint(30, 60)
         self.hp = random.randint(200, 400)
         if pokemon_trainer not in Pokemon.pokemons:
@@ -20,6 +20,16 @@ class Pokemon:
         else:
             self = Pokemon.pokemons[pokemon_trainer]
             
+        
+
+    async def feed(self, feedinterval=60, hp_increase=10):
+        nowtime = datetime.now()
+        deltatime = timedelta(seconds=feedinterval)
+        if (nowtime - self.lastfeedtime) > deltatime:
+            self.hp += hp_increase
+            return f"Health Increased to {self.hp}"
+        else:
+            return f"Too Early!"
 
     async def get_name(self):
         # An asynchronous method to get the name of a pokémon via PokeAPI
@@ -32,16 +42,18 @@ class Pokemon:
                 else:
                     return "Pikachu"  # Return the default name if the request fails
 
+
+
     async def changenickname(self, a):
         self.nickname = a
 
-    async def foodie(self):
+    async def givm(self):
         if self.food > 0:
             self.food = self.food- 50
             self.level = self.level + 1
-            return "Feeding your pokemon"
+            return "Upgrading your pokemon"
         else:
-            return "There is No Food!"
+            return "You have no Crystals!"
 
     async def goodier(self):
         self.food = self.food + 200
@@ -57,46 +69,33 @@ class Pokemon:
                     x = ", ".join(self.abilities)
                     y = f"Your Pokemon's Abilities are: {x}"
                     return y
-    
-    async def get_moves(self):
-        url = f'https://pokeapi.co/api/v2/pokemon/{self.pokemon_number}'
-        async with aiohttp.ClientSession() as session:
-            async with session.get(url) as response:
-                if response.status == 200:
-                    data = await response.json()
-                    for move_entry in data["moves"]:
-                        for detail in move_entry["version_group_details"]:
-                            if (detail["level_learned_at"] == self.level and
-                                detail["move_learn_method"]["name"] == "level-up"):
-                                move_name = move_entry["move"]["name"]
-                                if move_name not in self.abilities:
-                                    self.abilities.append(move_name)
-                    m = ", ".join(self.abilities)
-                    return f"Your Pokemon's Current Moves are: {m}"
 
     async def attack(self, enemy):
         if isinstance(enemy, Wizard):
             chance = random.randint(1, 5)
             if chance == 1:
                 return "Pokemon Penyihir menggunakan perisai dalam pertarungan"
-        
-        if enemy.hp > self.power:
-            enemy.hp -= self.power
+        ehp = enemy.hp * (enemy.level *5)
+        spwr = self.power * (self.level * 2.5)
+        if ehp > spwr:
+            enemy.hp -= spwr
             return f"Pertarungan @{self.pokemon_trainer} dengan @{enemy.pokemon_trainer}"
         else:
-            enemy.hp = 0
+            enemy.hp <= 0
             return f"@{self.pokemon_trainer} menang melawan @{enemy.pokemon_trainer}!"
 
 
     async def info(self):
         # A method that returns information about the pokémon
-        if not self.name:
-            self.name = await self.get_name()  # Retrieving a name if it has not yet been uploaded
-        return f"""The name of your Pokémon: {self.name} 
-        The Nickname of your pokemon: {self.nickname}
-        The Level of your Pokemon: {self.level}
-        The Power of your Pokemon: {self.power}
-        The HP of your pokemon: {self.hp}"""  # Returning the string with the Pokémon's name
+        #self = await self.get_name()
+        #self = await self.get_abilities()  # Retrieving a name if it has not yet been uploaded
+        return f"""
+        The Name of your Pokémon:  
+        The Nickname of your Pokémon: {self.nickname}
+        The Level of your Pokémon: {self.level}
+        The Power of your Pokémon: {self.power}
+        The HP of your Pokémon: {self.hp}
+        The Abilities of your Pokémon:"""  # Returning the string with the Pokémon's name
 
     async def show_img(self):
         # An asynchronous method to retrieve the URL of a pokémon image via PokeAPI
@@ -112,13 +111,16 @@ class Pokemon:
 
 
 class Wizard(Pokemon):
-    pass
+    async def feed(self):
+        return await super().feed(hp_increase=20)
 
 
 class Fighter(Pokemon):
+    async def feed(self):
+        return await super().feed(feedinterval=40)
     async def attack(self, enemy):
         super_power = random.randint(5, 15)
         self.power += super_power
-        result = await super.attack(enemy)
+        result = await super().attack(enemy)
         self.power -= super_power
         return result + f"\nPetarung menggunakan serangan super dengan kekuatan:{super_power}"

@@ -32,8 +32,6 @@ async def go(ctx):
         elif chance == 3:
             pokemon = Fighter(author, "None")
         await ctx.send(await pokemon.info())  # Sending information about the Pokémon
-        await ctx.send(await pokemon.get_abilities())
-        await ctx.send(await pokemon.get_moves())
         await ctx.send(str(chance))
         image_url = await pokemon.show_img()  # Getting the URL of the Pokémon image
         if image_url:
@@ -50,15 +48,24 @@ async def go(ctx):
         await ctx.send("You've already created your own Pokémon.")  # A message that is printed whether a Pokémon has already been created
 # Running the bot
 @bot.command()
-async def feed(ctx):
+async def upgrade(ctx):
     author = ctx.author.name
     if author not in Pokemon.pokemons.keys():
         await ctx.send("You have No Pokemon, use !go to make one")
     else:
         brokemon = Pokemon.pokemons[author]
         
-        await ctx.send(await brokemon.foodie())
+        await ctx.send(await brokemon.givm())
         await ctx.send(f"Your Pokemon is now Level {brokemon.level}")
+
+@bot.command()
+async def feed(ctx):
+    author = ctx.author.name
+    if author not in Pokemon.pokemons.keys():
+        await ctx.send("You have No Pokemon, use !go to make one")
+    else:
+        brokemon = Pokemon.pokemons[author]
+        await ctx.send(await brokemon.feed())
 
 @bot.command()
 async def attack(ctx):
@@ -75,10 +82,10 @@ async def attack(ctx):
         await ctx.send("Tetapkan pemain yang ingin Anda serang dengan menyebutnya.")
 
 @bot.command()
-async def get_food(ctx):
+async def get_crystals(ctx):
     author = ctx.author.name
     if author not in Pokemon.pokemons.keys():
-        await ctx.send("You have No Pokemon, so i guess you just get some food for yourself.")
+        await ctx.send("You have No Pokemon, so you are sad, use !go to do the thing.")
     else:
         brokemon = Pokemon.pokemons[author]
         await brokemon.goodier()
@@ -99,8 +106,6 @@ async def info(ctx):
     if author in Pokemon.pokemons.keys():
         bokemon = Pokemon.pokemons[author]
         await ctx.send(await bokemon.info())  # Sending information about the Pokémon
-        await ctx.send(await bokemon.get_abilities())
-        await ctx.send(await bokemon.get_moves())
         image_url = await bokemon.show_img()  # Getting the URL of the Pokémon image
         if image_url:
             embed = discord.Embed()  # Creating an embed message
