@@ -22,5 +22,5 @@ and last and not least
 ### and see its information!
 
 
-![here is an example of !go being used](https://imgur.com/a/ceiXJv6)
+![here is an example of !go being used](https://i.imgur.com/DpUmBEc.png)
 *i am slightly not obsessed with git*
